@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ERLC Postal Navigator</title>
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--text:#14171c;--muted:#5b6472;--line:#d5d9e0;--accent:#1a73e8;--me:#e8453c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151a;--panel:#1b2027;--text:#eceff4;--muted:#9aa4b2;--line:#2c333d;--accent:#6aa6ff;--me:#ff6b60}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+.app{display:grid;grid-template-columns:320px 1fr;height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--line);padding:16px;overflow:auto}
+h1{font-size:18px;margin:0 0 12px}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+input,button{width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:15px}
+button{cursor:pointer;margin-top:8px}
+button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.row{display:flex;gap:8px}.row button{margin-top:8px}
+.sum{margin:14px 0 6px;font-weight:600}
+ol{padding-left:20px;margin:6px 0;font-size:14px;line-height:1.6}
+.note{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5}
+.mapwrap{position:relative;min-height:0}
+svg{width:100%;height:100%;background:#2d4a52;touch-action:none;cursor:grab;display:block}
+.zoom{position:absolute;right:14px;top:14px;display:flex;flex-direction:column;gap:6px}
+.zoom button{width:40px;height:40px;margin:0;padding:0;font-size:20px;background:var(--panel)}
+.hit{fill:transparent;cursor:pointer}.hit:hover{fill:rgba(255,255,255,.35);stroke:#fff}
+.route{stroke:#ffeb3b;stroke-width:9;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:18 12;animation:d 1s linear infinite;filter:drop-shadow(0 0 3px #000)}
+@keyframes d{to{stroke-dashoffset:-30}}
+.err{color:var(--me)}
+select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:14px;margin-top:8px}
+textarea{min-height:64px;font-family:monospace;font-size:12px}
+details{border-top:1px solid var(--line);margin-top:12px;padding-top:8px}summary{cursor:pointer;font-weight:600}
+.chip{display:flex;gap:6px;align-items:center;margin-top:6px;font-size:13px}.chip span{flex:1}.chip button{width:auto;margin:0;padding:4px 8px;font-size:12px}
+.row input{min-width:0}
+@media(max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:100vh}aside{border-right:0;border-bottom:1px solid var(--line);max-height:46vh}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+<h1>ERLC Postal Navigator</h1>
+<label for="from">Your postal (from the API)</label><input id="from" list="pl" inputmode="numeric" value="213">
+<label for="to">Destination postal</label><input id="to" list="pl" inputmode="numeric" value="327">
+<datalist id="pl"></datalist>
+<div class="row"><button id="go">Navigate</button><button id="swap">Swap</button></div>
+<button id="modeBtn">Tap map to set: destination</button>
+<div class="sum" id="sum"></div>
+<details id="pdet" open><summary>Players</summary>
+<div class="row"><input id="pn" placeholder="Name"><input id="pp" placeholder="Postal" inputmode="numeric" style="width:90px"></div>
+<button id="padd">Add / update player</button>
+<textarea id="pjson" placeholder="Paste the ER:LC players JSON (with each player’s postal code), or lines like: Name 213"></textarea>
+<button id="pimp">Import players</button>
+<div id="plist"></div></details>
+<details id="apidet"><summary>Live API</summary>
+<label for="akey">Server key (optional if set on the server)</label><input id="akey" type="password" autocomplete="off" placeholder="Paste server key">
+<label for="me">Your Roblox name (auto-sets From)</label><input id="me" autocomplete="off">
+<div class="row"><button id="afetch">Fetch players</button><button id="aauto">Auto: off</button></div>
+<div class="note" id="astat">Leave the key blank to use the server’s key, or paste your own (kept only in this browser).</div></details>
+<details id="adet"><summary>Admin: edit roads &amp; postals</summary>
+<div id="alock"><label id="alab" for="apin">Admin PIN</label><input id="apin" type="password"><button id="aun">Unlock</button></div>
+<div id="apanel" hidden>
+<label>Edit</label><div class="row"><button id="tgR" class="on">Roads</button><button id="tgP">Postals</button></div>
+<label>Tool</label><div class="row"><button id="tlM" class="on">Move</button><button id="tlA">Add</button><button id="tlD">Delete</button></div>
+<select id="rsel" aria-label="Road"></select>
+<div class="row"><input id="rname" placeholder="Road name"><button id="rnew" style="width:70px">New</button></div>
+<div class="row"><button id="rren">Rename</button><button id="rdel">Delete road</button></div>
+<input id="newp" placeholder="Postal # to add (then tap map)" inputmode="numeric" style="margin-top:8px">
+<label><input type="checkbox" id="shr" checked style="width:auto"> Show all roads</label>
+<textarea id="ajson" placeholder="Export / import JSON"></textarea>
+<div class="row"><button id="aexp">Export</button><button id="aimp">Import</button><button id="areset">Reset</button></div>
+<div class="note" id="ast">Edits save automatically for everyone who opens this page (admins only), and always in this browser. Export gives you a backup.</div>
+</div></details>
+<ol id="steps"></ol>
+<p class="note">Postals come from your map. The road network is traced by hand from the main roads, so side streets are approximated by a straight link to the nearest road. Distances are in map units. Players come live from the ER:LC API through this site’s server.</p>
+</aside>
+<div class="mapwrap">
+<svg id="map" viewBox="0 0 1930 1930"><image href="map.jpg" x="0" y="0" width="1930" height="1930"/><g id="rg"></g><g id="hits"></g><g id="plr"></g><g id="pins"></g></svg>
+<div class="zoom"><button id="zi" aria-label="Zoom in">+</button><button id="zo" aria-label="Zoom out">−</button><button id="zr" aria-label="Reset">⟲</button></div>
+</div>
+</div>
+<script>
+const PS="200:425,1555;201:543,1566;202:670,1535;203:445,1498;204:540,1498;205:665,1469;206:515,1450;207:567,1450;208:613,1450;209:457,1405;210:540,1405;211:612,1405;212:676,1405;213:457,1343;214:515,1343;215:567,1343;216:613,1343;217:667,1343;218:761,1321;219:565,1300;220:613,1300;221:457,1282;222:516,1300;223:567,1250;224:613,1250;225:688,1250;226:775,1250;227:403,1232;228:459,1222;229:509,1241;230:588,1201;231:668,1201;300:889,1450;301:970,1464;302:1123,1450;303:1275,1419;304:950,1400;305:1001,1400;306:950,1330;307:1008,1349;308:1208,1349;309:1010,1314;310:1059,1314;311:1112,1314;312:1152,1319;313:1200,1314;314:1288,1312;315:965,1263;316:1032,1263;317:1097,1263;319:1152,1248;320:1275,1260;321:975,1191;322:1097,1197;323:1150,1206;324:1204,1206;325:1275,1194;326:1101,1141;327:1184,1141;400:421,1137;401:751,1158;402:347,1062;403:581,1110;404:664,1110;405:464,1050;406:545,1050;407:617,1050;408:453,968;409:546,988;410:618,988;411:680,988;500:863,984;501:1072,1054;502:1245,1033;503:1193,951;504:1252,798;600:424,893;601:663,834;602:364,746;603:565,683;604:484,624;605:425,565;606:318,498;607:387,498;700:1037,805;701:984,745;702:1059,745;703:1124,731;704:1018,648;705:1178,642;800:393,421;801:464,440;802:527,406;803:362,334;804:427,362;805:520,358;806:447,319;807:546,316;808:483,271;809:575,262;900:649,566;901:835,642;902:806,552;903:718,479;904:661,375;905:800,393;906:701,222;907:720,127;908:823,123;909:915,144;1000:967,415;1001:1136,488;1002:1289,502;1003:1232,452;1004:1283,452;1005:1159,395;1006:1232,404;1007:1283,404;1008:1232,355;1009:1283,355;1010:1257,266;1011:1158,210;1100:1442,584;1101:1519,564;1102:1442,517;1103:1494,503;1104:1555,517;1105:1442,442;1106:1495,442;1107:1535,437;1108:1524,366;1109:1419,339;1200:1432,1311;1201:1500,1311;1202:1629,1262;1203:1382,1179;1204:1647,1185;1205:1451,1081;1206:1525,1017;1207:1633,1017;1208:1320,934;1209:1512,831;1210:1356,784;1211:1376,682;1212:1474,747;1213:1580,724";
+const P={};PS.split(";").forEach(s=>{const[a,b]=s.split(":"),[x,y]=b.split(",");P[a]=[+x,+y]});
+const RD="Highway 55|1365,140 1360,450 1330,640 1200,790 1020,975 920,1070 885,1160 885,1373;Highway 2|280,570 400,650 700,750 800,770 900,840 1020,972;Freedom Avenue|390,1373 885,1373 1330,1373;Riverside Drive|870,450 880,560 830,690 795,775 775,900 790,1050 820,1230 820,1373;Riverside Drive (north)|640,230 800,320 870,440;Valley Drive|350,450 348,580 365,640 420,860 410,980 370,1100 370,1230 390,1373;Oak Valley Drive|1115,938 1270,820 1390,740 1450,680;Oak Valley Drive (link)|1450,680 1460,600 1470,520 1470,470;Oak Valley Drive (north)|640,230 700,155 800,150 930,170 1000,200 1160,215 1300,190 1400,240 1470,330 1470,470;Colonial Drive (south)|1020,975 1115,938 1215,1040 1245,1110;Colonial Drive (north)|862,612 990,612 1045,640 1090,720 1093,850;Correction Street|1215,930 1262,990 1250,1040;Rockport Road (500)|895,945 905,985 920,1070;High Rock Road|1330,780 1365,830 1368,935;Spring Creek Road|990,610 993,425 1100,425 1205,425;Lakeview Court|1207,345 1207,475;Lakeview Court (east)|1305,345 1305,475;Polk Street|1207,378 1305,378;Iron Road|1257,378 1257,475;Maple Street|1207,475 1357,475;Maple Street (east)|1360,475 1470,475;Elm Street|1412,475 1412,562;Walnut Way|1412,562 1500,562 1500,475;Cedar Circle|1412,475 1412,410 1545,410 1545,500;Terrace Drive|1515,410 1515,475;Vine Street|1010,723 1130,723;Citrus Lane|1020,723 1020,765;Harvest Road|1150,690 1150,760 1130,723;Gibson Lane|985,770 985,845;Rockport Road (north)|985,845 1095,845;Fairview Trail|480,420 540,430 595,480 595,560 590,640 640,675 740,690 830,730 890,715 985,690;Fairview Road (north)|470,420 480,330 500,290;Fairview Road (west)|350,560 395,550 440,505 445,470;Edgewood Boulevard|400,330 430,280 510,240 640,230;Lakeway Street|580,355 628,265;First Street|385,395 475,375;Second Street|405,355 480,340;Third Street|425,320 485,305;Fourth Street|530,300 590,280;Spring Lake Way|790,165 850,160;Aviator Lane|760,540 760,480 800,455 850,445 870,448;Estate Drive|580,870 645,865 700,885 772,900;Pinecrest Drive|700,885 700,830;Cardinal Court|570,855 620,830 650,845;Pineview Circle|500,958 715,958 715,1133;Emerson Road|500,958 500,1085;Carolina Drive|588,958 588,1085;Academy Place (north)|648,958 648,1085;Franklin Way|500,1010 590,1010;Morgan Way|620,1040 715,1040;Academy Place|380,1085 715,1085;Arbor Lane|540,1085 540,1225;Fairfax Road|380,1133 720,1133 760,1100 800,1085;Commerce Way|540,1182 700,1182;Independence Parkway|590,1222 820,1222;Justice Circle|490,1240 540,1240 585,1240;Sandstone Road|490,1230 490,1373;Durham Road|540,1225 540,1343;Main Street|585,1182 585,1373;Park Avenue|640,1182 640,1373;Brookstone Way|715,1280 715,1373;Orchard Boulevard|600,1280 820,1280;Grand Avenue|570,1318 820,1318;Fairfax Road (west)|380,1230 425,1240 425,1373;Vacation Court|457,1373 440,1430 415,1480;Southern Avenue|500,1373 500,1427 690,1427 690,1373;Liberty Way|525,1427 525,1476 630,1476 630,1427;Oceanside Drive|525,1476 560,1515 600,1510 690,1485;Independence Parkway (east)|885,1235 1300,1235;Bulletin Avenue|1065,1115 1245,1115;Bulletin Avenue (south)|1065,1115 1065,1373;Shawns Lane|1070,1155 1130,1155;New York Lane|1100,1182 1245,1182;Virginia Avenue|1245,1110 1245,1373;Virginia Avenue (west)|925,1335 1320,1335;Industrial Road|920,1293 1320,1293;Rockport Road|920,1190 920,1373;Freight Street|1130,1235 1130,1330;Lost Lane|1000,1235 1000,1293;Cross Street|975,1293 975,1373;Cline Street|1030,1293 1030,1373;Nebraska Street|1175,1235 1175,1340;Illinois Street|1320,1250 1320,1373;Madison Court|920,1373 920,1427 1030,1427 1030,1373";const ROADS={};RD.split(";").forEach(s=>{const[n,c]=s.split("|");ROADS[n]=c.split(" ").map(q=>q.split(",").map(Number))});
+const $=id=>document.getElementById(id),svg=$("map"),NS="http://www.w3.org/2000/svg";
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e}
+const N=[],adj=[];
+function link(a,b){const d=Math.hypot(N[a].x-N[b].x,N[a].y-N[b].y);adj[a].push([b,d]);adj[b].push([a,d])}
+function build(){N.length=0;adj.length=0;for(const[name,pts]of Object.entries(ROADS)){let prev=-1;const road=name.replace(/ \(.*\)/,"");
+ for(let i=0;i<pts.length-1;i++){const[a,b]=[pts[i],pts[i+1]],L=Math.hypot(b[0]-a[0],b[1]-a[1]),k=Math.max(1,Math.round(L/20));
+  for(let j=(i?1:0);j<=k;j++){N.push({x:a[0]+(b[0]-a[0])*j/k,y:a[1]+(b[1]-a[1])*j/k,r:road,g:name});adj.push([]);const id=N.length-1;if(prev>=0)link(prev,id);prev=id}}}
+for(let i=0;i<N.length;i++)for(let j=i+1;j<N.length;j++)if(N[i].g!==N[j].g&&Math.hypot(N[i].x-N[j].x,N[i].y-N[j].y)<26)link(i,j);for(let i=0;i<N.length;i++){if(adj[i].filter(([v])=>N[v].g===N[i].g).length>1)continue;let b=-1,bd=55;for(let j=0;j<N.length;j++)if(N[j].g!==N[i].g){const d=Math.hypot(N[i].x-N[j].x,N[i].y-N[j].y);if(d<bd){bd=d;b=j}}if(b>=0)link(i,b)}}build();
+function snap(p){let b=0,bd=1e9;N.forEach((n,i)=>{const d=Math.hypot(n.x-p[0],n.y-p[1]);if(d<bd){bd=d;b=i}});return[b,bd]}
+function route(s,t){const d=Array(N.length).fill(1/0),pr={},q=new Set(N.map((_,i)=>i));d[s]=0;
+ while(q.size){let u=-1;q.forEach(i=>{if(u<0||d[i]<d[u])u=i});if(d[u]===1/0)break;q.delete(u);if(u===t)break;adj[u].forEach(([v,w])=>{if(d[u]+w<d[v]){d[v]=d[u]+w;pr[v]=u}})}
+ if(d[t]===1/0)return null;const r=[];let c=t;while(c!==undefined){r.unshift(c);c=pr[c]}return r}
+// map view
+const FULL={x:0,y:0,w:1930,h:1930};let vb={...FULL};
+function setVB(v){const w=Math.min(1930,Math.max(150,v.w)),h=w*v.h/v.w;vb={x:Math.max(-100,Math.min(2030-w,v.x)),y:Math.max(-100,Math.min(2030-h,v.y)),w,h};svg.setAttribute("viewBox",`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);rs()}
+function zoom(f,cx,cy){cx=cx??vb.x+vb.w/2;cy=cy??vb.y+vb.h/2;setVB({x:cx-(cx-vb.x)*f,y:cy-(cy-vb.y)*f,w:vb.w*f,h:vb.h*f})}
+function pt(e){const r=svg.getBoundingClientRect(),s=Math.max(vb.w/r.width,vb.h/r.height);return[vb.x+(e.clientX-r.left)*s,vb.y+(e.clientY-r.top)*s,s]}
+svg.addEventListener("wheel",e=>{e.preventDefault();const[x,y]=pt(e);zoom(e.deltaY>0?1.2:1/1.2,x,y)},{passive:false});
+let drag=null,moved=false;
+svg.addEventListener("pointerdown",e=>{drag={x:e.clientX,y:e.clientY,vb:{...vb}};moved=false});
+addEventListener("pointermove",e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>5)moved=true;if(moved){const s=pt({clientX:0,clientY:0})[2];setVB({...drag.vb,x:drag.vb.x-dx*s,y:drag.vb.y-dy*s})}});
+addEventListener("pointerup",()=>{drag=null});
+$("zi").onclick=()=>zoom(1/1.4);$("zo").onclick=()=>zoom(1.4);$("zr").onclick=()=>setVB(FULL);
+// postals
+const hits=$("hits"),dl=$("pl");let rs=()=>{};
+Object.entries(P).forEach(([k,p])=>{const o=document.createElement("option");o.value=k;dl.appendChild(o);
+ const c=el("circle",{class:"hit",cx:p[0],cy:p[1],r:15},hits);c.addEventListener("click",()=>{if(moved)return;(mode==="to"?$("to"):$("from")).value=k;nav()});
+ el("title",{},c).textContent="Postal "+k});
+let mode="to";
+$("modeBtn").onclick=()=>{mode=mode==="to"?"from":"to";$("modeBtn").textContent="Tap map to set: "+(mode==="to"?"destination":"my location");$("modeBtn").classList.toggle("on",mode==="from")};
+$("swap").onclick=()=>{[$("from").value,$("to").value]=[$("to").value,$("from").value];nav()};
+$("go").onclick=nav;
+[$("from"),$("to")].forEach(i=>i.addEventListener("change",nav));
+function pin(p,col,txt){const g=el("g",{transform:`translate(${p[0]},${p[1]})`},$("pins"));el("circle",{r:12,fill:col,stroke:"#fff","stroke-width":4},g);const t=el("text",{y:-20,"text-anchor":"middle","font-size":24,"font-weight":700,fill:"#fff",stroke:"#000","stroke-width":5,"paint-order":"stroke"},g);t.textContent=txt}
+function nav(){
+ $("rg").innerHTML="";$("pins").innerHTML="";$("steps").innerHTML="";$("sum").className="sum";
+ const a=$("from").value.trim(),b=$("to").value.trim();
+ if(!P[a]||!P[b]){$("sum").className="sum err";$("sum").textContent="Enter valid postals (200–1213)";return}
+ pin(P[a],"var(--me)","From "+a);pin(P[b],"#1a73e8","To "+b);
+ if(a===b){$("sum").textContent="You’re already there";return}
+ const[sa,da]=snap(P[a]),[sb,db]=snap(P[b]),r=route(sa,sb);
+ if(!r){$("sum").className="sum err";$("sum").textContent="No road route found";return}
+ const pts=[P[a],...r.map(i=>[N[i].x,N[i].y]),P[b]];
+ el("polyline",{class:"route",points:pts.map(p=>p.join(",")).join(" ")},$("rg"));
+ const runs=[];let total=da+db;
+ for(let i=1;i<r.length;i++){const d=Math.hypot(N[r[i]].x-N[r[i-1]].x,N[r[i]].y-N[r[i-1]].y),rd=N[r[i]].r;total+=d;
+  const l=runs[runs.length-1];if(l&&l.r===rd)l.d+=d;else runs.push({r:rd,d})}
+ const li=t=>{const e=document.createElement("li");e.textContent=t;$("steps").appendChild(e)};
+ li(`Leave postal ${a} and head to ${N[sa].r} (${Math.round(da)})`);
+ runs.filter(x=>x.d>30).forEach(x=>li(`Follow ${x.r} (${Math.round(x.d)})`));
+ li(`Turn off ${N[sb].r} to postal ${b} (${Math.round(db)})`);
+ $("sum").textContent=`About ${Math.round(total)} map units`;
+ if(window.__nz)return;const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+ const w=Math.max(400,(x1-x0)*1.5,(y1-y0)*1.5*svg.clientWidth/svg.clientHeight);setVB({x:(x0+x1)/2-w/2,y:(y0+y1)/2-w*svg.clientHeight/svg.clientWidth/2,w,h:w*svg.clientHeight/svg.clientWidth});
+}
+window.ERLCNav={setFrom:p=>{$("from").value=String(p);nav()},setTo:p=>{$("to").value=String(p);nav()}};
+/* ===== players + admin ===== */
+const sget=k=>{try{return localStorage.getItem(k)}catch(e){return null}},sset=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+const DEF=JSON.stringify({roads:ROADS,postals:P});
+let unlocked=false,tool="move",tg="roads",sel=null,hd=null,players=[];
+const adminOn=()=>unlocked&&$("adet").open,ast=m=>{$("ast").textContent=m};
+const nzNav=()=>{window.__nz=1;nav();window.__nz=0};
+function applyData(d){Object.keys(ROADS).forEach(k=>delete ROADS[k]);Object.assign(ROADS,d.roads);Object.keys(P).forEach(k=>delete P[k]);Object.assign(P,d.postals);build();drawHits()}
+function drawHits(){hits.innerHTML="";dl.innerHTML="";
+ Object.entries(P).sort((a,b)=>a[0]-b[0]).forEach(([k,p])=>{const o=document.createElement("option");o.value=k;dl.appendChild(o);
+  const c=el("circle",{class:"hit",cx:p[0],cy:p[1],r:15},hits);
+  c.addEventListener("click",()=>{if(moved||adminOn())return;(mode==="to"?$("to"):$("from")).value=k;nav()});
+  el("title",{},c).textContent="Postal "+k})}
+// players
+function savePl(){sset("erlcPlayers",JSON.stringify(players));if(DB)DB.doc("nav/players").set({json:JSON.stringify(players)}).catch(()=>{});drawPlayers()}
+function parsePlayers(t){t=t.trim();let out=[];
+ try{let j=JSON.parse(t);if(!Array.isArray(j))j=j.Players||j.players||j.data||[];
+  out=j.map(x=>{const L=x.Location||x.location||x;return{name:String(x.Player||x.player||x.name||x.Name||x.Username||"").split(":")[0],postal:L.PostalCode??L.postalCode??L.postal??L.Postal}})}
+ catch(e){out=t.split(/\n/).map(l=>{const m=l.trim().match(/^(.+?)[\s,:]+(\d{3,4})$/);return m?{name:m[1],postal:m[2]}:null}).filter(Boolean)}
+ return out.filter(x=>x.name&&x.postal!=null).map(x=>({name:x.name,postal:String(x.postal)}))}
+function drawPlayers(){const g=$("plr"),L=$("plist");g.innerHTML="";L.innerHTML="";const cnt={};
+ players.forEach((pl,i)=>{const p=P[pl.postal],row=document.createElement("div");row.className="chip";
+  const s=document.createElement("span");s.textContent=pl.name+" \u00b7 "+pl.postal+(p?"":" (unknown postal)");row.appendChild(s);
+  [["From",()=>{$("from").value=pl.postal;nav()}],["To",()=>{$("to").value=pl.postal;nav()}],["\u2715",()=>{players.splice(i,1);savePl()}]].forEach(([t,f])=>{const b=document.createElement("button");b.textContent=t;b.onclick=f;row.appendChild(b)});
+  L.appendChild(row);
+  if(p){const n=cnt[pl.postal]=(cnt[pl.postal]||0)+1;
+   el("circle",{cx:p[0],cy:p[1],r:7,fill:"#00e676",stroke:"#000","stroke-width":2,"pointer-events":"none"},g);
+   el("text",{x:p[0]+10,y:p[1]-10-18*(n-1),"font-size":18,"font-weight":700,fill:"#fff",stroke:"#000","stroke-width":4,"paint-order":"stroke","pointer-events":"none"},g).textContent=pl.name}})}
+$("padd").onclick=()=>{const n=$("pn").value.trim(),p=$("pp").value.trim();if(!n||!P[p])return;const i=players.findIndex(x=>x.name===n);if(i>=0)players[i].postal=p;else players.push({name:n,postal:p});savePl()};
+$("pimp").onclick=()=>{players=parsePlayers($("pjson").value);savePl()};
+ERLCNav.setPlayers=a=>{players=a.map(x=>({name:String(x.name),postal:String(x.postal)}));savePl()};
+// admin lock (convenience lock only, not real security)
+const hp=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))|0;return String(h)};
+if(!sget("erlcPin")){$("alab").textContent="Set an admin PIN";$("aun").textContent="Set & unlock"}
+$("aun").onclick=()=>{const v=$("apin").value,st=sget("erlcPin");if(!v)return;
+ if(!st){sset("erlcPin",hp(v));unl()}else if(st===hp(v))unl();else ast("Wrong PIN")};
+function unl(){unlocked=true;$("alock").hidden=true;$("apanel").hidden=false;refreshSel();drawEd()}
+$("adet").addEventListener("toggle",drawEd);$("shr").onchange=drawEd;
+function refreshSel(){const k=Object.keys(ROADS),s=$("rsel");s.innerHTML="";k.forEach(x=>{const o=document.createElement("option");o.textContent=x;s.appendChild(o)});if(!ROADS[sel])sel=k[0];s.value=sel}
+$("rsel").onchange=()=>{sel=$("rsel").value;drawEd()};
+function setTool(t){tool=t;[["tlM","move"],["tlA","add"],["tlD","del"]].forEach(([i,v])=>$(i).classList.toggle("on",v===t));drawEd()}
+function setTg(t){tg=t;$("tgR").classList.toggle("on",t==="roads");$("tgP").classList.toggle("on",t==="postals");drawEd()}
+$("tlM").onclick=()=>setTool("move");$("tlA").onclick=()=>setTool("add");$("tlD").onclick=()=>setTool("del");
+$("tgR").onclick=()=>setTg("roads");$("tgP").onclick=()=>setTg("postals");
+const ed=el("g",{});
+function handle(p,key,kind){
+ const c=el("circle",{cx:p[0],cy:p[1],r:kind==="road"?11:9,fill:kind==="road"?"#00e5ff":"#ff9800",stroke:"#000","stroke-width":2,style:"cursor:"+(tool==="move"?"move":"pointer")},ed);
+ c.addEventListener("pointerdown",e=>{if(tool!=="move")return;e.stopPropagation();e.preventDefault();hd={p}});
+ c.addEventListener("click",e=>{e.stopPropagation();if(tool!=="del")return;
+  if(kind==="road"){if(ROADS[sel].length<=2)return ast("A road needs at least 2 points");ROADS[sel].splice(key,1)}else delete P[key];commit()})}
+function drawEd(){ed.innerHTML="";if(!adminOn())return;
+ if(tg==="roads"){Object.entries(ROADS).forEach(([n,pts])=>{const s=n===sel;if(!s&&!$("shr").checked)return;
+   el("polyline",{points:pts.join(" "),fill:"none",stroke:s?"#00e5ff":"#fff","stroke-opacity":s?.9:.4,"stroke-width":s?6:3,"pointer-events":"none"},ed)});
+  (ROADS[sel]||[]).forEach((p,i)=>handle(p,i,"road"))}
+ else Object.entries(P).forEach(([k,p])=>handle(p,k,"postal"))}
+addEventListener("pointermove",e=>{if(!hd)return;const[x,y]=pt(e);hd.p[0]=Math.round(x);hd.p[1]=Math.round(y);drawEd()});
+addEventListener("pointerup",()=>{if(hd){hd=null;commit()}});
+function segd(p,a,b){const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/(dx*dx+dy*dy||1)));return Math.hypot(p[0]-a[0]-t*dx,p[1]-a[1]-t*dy)}
+svg.addEventListener("click",e=>{if(moved||!adminOn()||tool!=="add")return;const[x,y]=pt(e),q=[Math.round(x),Math.round(y)];
+ if(tg==="postals"){const k=$("newp").value.trim();if(!/^\d{3,4}$/.test(k))return ast("Type a postal number first");P[k]=q}
+ else{const pts=ROADS[sel];if(!pts)return;let bi=pts.length,bd=1e9;
+  for(let i=0;i<pts.length-1;i++){const d=segd(q,pts[i],pts[i+1]);if(d<bd){bd=d;bi=i+1}}
+  if(bd>25)bi=pts.length;pts.splice(bi,0,q)}
+ commit()});
+function commit(){build();drawHits();drawEd();nzNav();drawPlayers();sset("erlcData2",JSON.stringify({roads:ROADS,postals:P}));ast("Saved in this browser");saveRemote()}
+$("rnew").onclick=()=>{const n=$("rname").value.trim();if(!n||ROADS[n])return ast("Pick an unused road name");
+ const cx=Math.round(vb.x+vb.w/2),cy=Math.round(vb.y+vb.h/2);ROADS[n]=[[cx-60,cy],[cx+60,cy]];sel=n;refreshSel();setTg("roads");commit()};
+$("rren").onclick=()=>{const n=$("rname").value.trim();if(!n||ROADS[n]||!sel)return ast("Pick an unused road name");ROADS[n]=ROADS[sel];delete ROADS[sel];sel=n;refreshSel();commit()};
+$("rdel").onclick=()=>{if(!sel)return;delete ROADS[sel];sel=null;refreshSel();commit()};
+$("aexp").onclick=()=>{$("ajson").value=JSON.stringify({roads:ROADS,postals:P});$("ajson").select()};
+$("aimp").onclick=()=>{try{const d=JSON.parse($("ajson").value);if(!d.roads||!d.postals)throw 0;applyData(d);refreshSel();commit()}catch(e){ast("Invalid JSON")}};
+$("areset").onclick=()=>{applyData(JSON.parse(DEF));try{localStorage.removeItem("erlcData2")}catch(e){}refreshSel();drawEd();nzNav();ast("Reset to defaults");saveRemote()};
+try{const s=sget("erlcData2");if(s)applyData(JSON.parse(s))}catch(e){}
+try{players=JSON.parse(sget("erlcPlayers")||"[]")}catch(e){}
+drawHits();drawPlayers();
+/* ===== live API ===== */
+let timer=null;
+$("akey").value=sget("erlcKey")||"";$("me").value=sget("erlcMe")||"";
+const stat=m=>{$("astat").textContent=m};
+function stopAuto(){if(timer){clearInterval(timer);timer=null}$("aauto").textContent="Auto: off";$("aauto").classList.remove("on")}
+async function pull(){
+ const k=$("akey").value.trim();
+ sset("erlcKey",k);sset("erlcMe",$("me").value.trim());stat("Fetching\u2026");
+ try{
+  const r=await fetch("/api/players",{headers:k?{"x-server-key":k}:{}});
+  if(!r.ok){let m="";try{m=(await r.json()).message||""}catch(e){}stat("API error "+r.status+(m?": "+m:"")+(r.status===429?" (rate limited)":""));if(r.status===403||r.status===401)stopAuto();return}
+  const list=parsePlayers(JSON.stringify(await r.json()));players=list;savePl();
+  const me=$("me").value.trim().toLowerCase(),m=me&&players.find(x=>x.name.toLowerCase()===me);
+  if(m&&P[m.postal]&&$("from").value!==m.postal){$("from").value=m.postal;nav()}
+  stat("Updated "+players.length+" players at "+new Date().toLocaleTimeString()+(m?" \u2022 you are in postal "+m.postal:""));
+ }catch(e){stopAuto();stat("Couldn\u2019t reach the server.")}}
+$("afetch").onclick=pull;
+$("aauto").onclick=()=>{if(timer){stopAuto();return}pull();timer=setInterval(pull,10000);$("aauto").textContent="Auto: every 10s";$("aauto").classList.add("on")};
+$("akey").onchange=()=>sset("erlcKey",$("akey").value.trim());
+/* ===== website sync (server saves roads, proxies the ER:LC API) ===== */
+let DB=null,adminPw="";
+async function saveRemote(){if(!adminPw)return;
+ try{const r=await fetch("/api/map",{method:"POST",headers:{"x-admin-password":adminPw,"Content-Type":"application/json"},body:JSON.stringify({roads:ROADS,postals:P})});
+  ast(r.ok?"Saved for everyone":r.status===401?"Wrong admin password. Saved in this browser only":"Server couldn\u2019t save. Saved in this browser only")}
+ catch(e){ast("Server unreachable. Saved in this browser only")}}
+async function loadMap(){try{const r=await fetch("/api/map");if(!r.ok)return;const d=await r.json();
+ if(d.roads&&d.postals&&JSON.stringify(d)!==JSON.stringify({roads:ROADS,postals:P})&&!hd&&!adminOn()){applyData(d);refreshSel();drawEd();nzNav()}}catch(e){}}
+$("alab").textContent="Admin password";$("aun").textContent="Unlock";
+$("aun").onclick=async()=>{const v=$("apin").value;if(!v)return;
+ try{const r=await fetch("/api/auth",{method:"POST",headers:{"x-admin-password":v}});if(r.ok){adminPw=v;unl()}else ast("Wrong admin password")}catch(e){ast("Server unreachable")}};
+loadMap();setInterval(loadMap,30000);
+nav();
+</script>
+</body>
+</html>
