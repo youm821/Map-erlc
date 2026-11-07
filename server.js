@@ -5,7 +5,7 @@ const PUB = path.join(__dirname, "public");
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
 const MAP_FILE = path.join(DATA_DIR, "map.json");
 const DEFAULT_MAP = path.join(__dirname, "defaults", "map.json");
-const API = "https://api.policeroleplay.community/v2/server?Players=true";
+const API = "https://api.erlc.gg/v2/server?Players=true";
 const TYPES = { ".html": "text/html; charset=utf-8", ".jpg": "image/jpeg", ".js": "text/javascript", ".json": "application/json", ".css": "text/css", ".png": "image/png" };
 const cache = new Map();
 
