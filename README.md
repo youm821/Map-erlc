@@ -29,3 +29,18 @@ Optional environment variables:
 
 **Important:** servers are saved in `DATA_DIR/servers`. On Render's free plan that disk is erased on restart or redeploy,
 which would delete every server. Use a **Render Disk** (mount `/var/data`) and set `DATA_DIR=/var/data`.
+
+## Keeping the site awake
+Render's free plan puts the site to sleep after ~15 minutes with no visitors. The server now **pings itself every 10 minutes**
+(`/healthz`) using the address Render provides, so it stays awake while it is running. Nothing to set up.
+- Change how often: `KEEPALIVE_MINUTES` (max 14). Turn off: `KEEPALIVE=0`.
+- A site that is *already asleep* can't wake itself. For extra safety, add a free outside pinger such as UptimeRobot or cron-job.org
+  that opens `https://YOUR-SITE.onrender.com/healthz` every 5 minutes. It also wakes the site after a redeploy.
+- Free plans have 750 running hours a month: enough for one site awake 24/7, but not two.
+
+## Link preview
+When someone posts your link in Discord, Slack, iMessage, X and so on, it shows a card with the app name, a short description and a
+picture (`public/og-image.png`, 1200x630). Each server link (`/s/their-name`) shows that server's name.
+- If you use your own domain, set `PUBLIC_URL=https://your-domain.com` so the card's image address is correct.
+- Want a different picture? Replace `public/og-image.png` (keep it 1200x630).
+- Discord remembers previews for a while. After changes, paste the link with `?v=2` on the end to see the new card.

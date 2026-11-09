@@ -123,8 +123,23 @@ function listServers() {
   try { for (const f of fs.readdirSync(SRV_DIR)) { if (!f.endsWith(".json") || f === "main.json") continue; const r = loadT(f.slice(0, -5)); if (r && r.listed) out.push({ slug: r.slug, name: r.name }); } } catch (e) {}
   return out.slice(0, 300);
 }
-function page(file, res) {
-  fs.readFile(path.join(PUB, file), (err, data) => err ? send(res, 404, "Not found", "text/plain") : (res.writeHead(200, { "Content-Type": TYPES[".html"], "Cache-Control": "no-cache" }), res.end(data)));
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const DESC = "Apple Maps-style navigation for ER:LC (Liberty County): live players, turn-by-turn directions, calls, 3D buildings, and the nearest hospital, police and fire station.";
+function origin(req) {
+  const env = (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || "").replace(/\/+$/, "");
+  if (env) return env;
+  const proto = String(req.headers["x-forwarded-proto"] || "http").split(",")[0].trim();
+  return proto + "://" + (req.headers["x-forwarded-host"] || req.headers.host || "localhost");
+}
+// Link-preview tags are filled in on the server because chat apps read them without running any scripts.
+function page(file, res, req, title, desc) {
+  fs.readFile(path.join(PUB, file), "utf8", (err, html) => {
+    if (err) return send(res, 404, "Not found", "text/plain");
+    const o = origin(req), url = o + req.url.split("?")[0];
+    html = html.replace(/__OG_TITLE__/g, esc(title || "ERLC Navigator")).replace(/__OG_DESC__/g, esc(desc || DESC))
+      .replace(/__OG_URL__/g, esc(url)).replace(/__OG_IMAGE__/g, esc(o + "/og-image.png"));
+    res.writeHead(200, { "Content-Type": TYPES[".html"], "Cache-Control": "no-cache" }); res.end(html);
+  });
 }
 function serveStatic(pathname, res) {
   let p = path.normalize(decodeURIComponent(pathname)).replace(/^(\.\.[/\\])+/, "");
@@ -158,14 +173,29 @@ const server = http.createServer(async (req, res) => {
       return send(res, 405, { message: "Method not allowed" });
     }
     // pages
+    if (p === "/healthz" && (m === "GET" || m === "HEAD")) return send(res, 200, "ok", "text/plain");
     if (m === "GET") {
-      if (p === "/servers") return page("servers.html", res);
-      if ((mm = p.match(/^\/s\/([a-z0-9-]+)(\/admin)?$/))) return tenant(mm[1]) ? page("index.html", res) : send(res, 404, "No such server. Create one at /servers", "text/plain");
-      if (p === "/admin") return page("index.html", res);
+      if (p === "/servers") return page("servers.html", res, req, "Servers \u00b7 ERLC Navigator", "Create your own ERLC Navigator for your ER:LC server: your own link, places, closed roads and buildings.");
+      if ((mm = p.match(/^\/s\/([a-z0-9-]+)(\/admin)?$/))) { const t = tenant(mm[1]); return t ? page("index.html", res, req, t.main ? "ERLC Navigator" : t.rec.name + " \u00b7 ERLC Navigator", t.main ? DESC : "Live navigation map for the " + t.rec.name + " ER:LC server: players, calls, turn-by-turn directions and places.") : send(res, 404, "No such server. Create one at /servers", "text/plain"); }
+      if (p === "/admin") return page("index.html", res, req, "Admin \u00b7 ERLC Navigator", DESC);
+      if (p === "/") return page("index.html", res, req, "ERLC Navigator", DESC);
       return serveStatic(p, res);
     }
     send(res, 405, { message: "Method not allowed" });
   } catch (e) { send(res, 500, { message: "Server error" }); }
 });
 module.exports = server;
-if (require.main === module) server.listen(PORT, () => console.log("ERLC Navigator on port " + PORT));
+// Keep-alive: Render's free plan sleeps after ~15 minutes without visits. While the app is running it pings
+// its own public address so it stays awake. (Render sets RENDER_EXTERNAL_URL automatically.)
+function keepAlive() {
+  const base = (process.env.KEEPALIVE_URL || process.env.RENDER_EXTERNAL_URL || "").replace(/\/+$/, "");
+  if (!base || DESKTOP || process.env.KEEPALIVE === "0") return;
+  const mins = Math.min(14, Math.max(0.01, parseFloat(process.env.KEEPALIVE_MINUTES) || 10));
+  const ping = async () => {
+    try { const r = await fetch(base + "/healthz", { signal: AbortSignal.timeout(20000) }); console.log("keep-alive ping", r.status); }
+    catch (e) { console.log("keep-alive ping failed:", e.message); }
+  };
+  setInterval(ping, mins * 60000).unref();
+  console.log("keep-alive on: pinging " + base + "/healthz every " + mins + " min");
+}
+if (require.main === module) server.listen(PORT, () => { console.log("ERLC Navigator on port " + PORT); keepAlive(); });
