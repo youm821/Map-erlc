@@ -10,3 +10,7 @@ services:
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
+      - key: SERVER_SECRET
+        sync: false
+      - key: INVITE_CODE
+        sync: false

@@ -1,26 +1,31 @@
 # ERLC Navigator – deploy on Render
 
-## Deploy
-1. Put this folder in a GitHub repo (the `.gitignore` is already set).
-2. On render.com: **New → Blueprint**, pick the repo (it reads `render.yaml`).
-   Or **New → Web Service**: Runtime `Node`, Build `npm install`, Start `node server.js`.
-3. Add environment variables:
-   - `ERLC_SERVER_KEY` – your server key (ER:LC → Settings → API). Stays on the server.
-   - `ADMIN_PASSWORD` – the password you'll type in the Admin panel to edit roads.
-4. Deploy, then open your `onrender.com` URL.
+1. Put this folder in a GitHub repo. On render.com: **New → Blueprint**, pick the repo.
+2. Set env vars: `ERLC_SERVER_KEY` (your ER:LC server key, stays on the server) and `ADMIN_PASSWORD` (Admin panel password).
+3. Deploy and open your onrender.com link.
 
-## Using it
-- **Live API:** open the "Live API" section, press **Auto**. Add your Roblox name to auto-set From.
-- **Admin:** unlock with `ADMIN_PASSWORD`, edit roads/postals. Edits save for everyone.
+**Phones:** open the link and use "Add to Home Screen" (iPhone: Share → Add to Home Screen; Android: menu → Install app). It runs full screen like an app.
 
-## Saving edits (important)
-Render's free plan has a temporary disk: edits are lost when the service restarts or redeploys.
-Pick one:
-- **Permanent, free:** in Admin press **Export**, copy the JSON into `defaults/map.json`, commit and push.
-- **Permanent, paid:** add a Render Disk (mount `/var/data`) and set env var `DATA_DIR=/var/data`.
+**Saving edits:** the free plan's disk is temporary. Press **Export** in Admin, paste the JSON into `defaults/map.json`, commit and push to keep it forever (or add a Render Disk and set `DATA_DIR=/var/data`).
 
-## Local test
-`ADMIN_PASSWORD=test ERLC_SERVER_KEY=yourkey node server.js` → http://localhost:3000
+**Players and calls** update live (Auto). The app calibrates itself from player positions, then shows feet/miles,
+turn-by-turn directions, and call pins. Mark Hospital/Police/Fire in Admin → Places for the "nearest" buttons.
 
-## Files
-`server.js` (site + API proxy + saving) · `public/index.html` · `public/map.jpg` · `defaults/map.json`
+**Admin page:** open `/admin` on your site (or Settings → Admin page) and enter `ADMIN_PASSWORD`.
+**Search:** the whole app is one search bar: type a postal, street, place, player, or call.
+
+**Map:** the base map is now drawn (no screenshot): water, parks, roads, houses and buildings. Tap a building to route to it.
+On the Admin page, choose **Places**, type a name, pick a category (Hospital, RCPD, LCSO, Fire, Bank, Jewelry, Tool Store, DOT Yard, Gas, ATM) and tap a building to tag it. The category tiles on the home screen then list those places by distance.
+
+## Other servers (multi-server)
+Any ER:LC community can have its own copy: open **/servers**, choose a name, an admin password and (optionally) their ER:LC server key.
+They get their own link `https://YOUR-SITE/s/their-name` and admin page `/s/their-name/admin`, with their own places,
+closed roads, custom buildings and road edits. Nothing is shared between servers, and one server's password can't open another's.
+
+Optional environment variables:
+- `SERVER_SECRET` – any long random text. Other servers' ER:LC keys are **encrypted** with it (set this!).
+- `INVITE_CODE` – if set, people must enter it to create a server (keeps strangers from filling your site).
+- `ALLOW_SIGNUP=0` – turn off creating new servers.
+
+**Important:** servers are saved in `DATA_DIR/servers`. On Render's free plan that disk is erased on restart or redeploy,
+which would delete every server. Use a **Render Disk** (mount `/var/data`) and set `DATA_DIR=/var/data`.
