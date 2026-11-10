@@ -44,3 +44,20 @@ picture (`public/og-image.png`, 1200x630). Each server link (`/s/their-name`) sh
 - If you use your own domain, set `PUBLIC_URL=https://your-domain.com` so the card's image address is correct.
 - Want a different picture? Replace `public/og-image.png` (keep it 1200x630).
 - Discord remembers previews for a while. After changes, paste the link with `?v=2` on the end to see the new card.
+
+## Website layout
+- `/` landing page · `/app` the main map · `/s/NAME` a server's map (`/s/NAME/admin` its admin page)
+- `/dashboard` log in with Discord, create servers, manage keys and admins · `/servers` public directory
+
+## Discord login (one-time setup)
+1. Go to https://discord.com/developers/applications and click **New Application**.
+2. Open **OAuth2** and add this exact **Redirect**: `https://YOUR-SITE.onrender.com/auth/discord/callback`
+   (if you use your own domain, use that domain instead, and set `PUBLIC_URL` to it).
+3. Copy the **Client ID** and **Client Secret** into Render as `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET`.
+4. Add `SESSION_SECRET` (any long random text, keeps people logged in across restarts).
+5. Add `OWNER_DISCORD_IDS` = your own Discord user ID (Discord: Settings > Advanced > Developer Mode, then right-click your name > Copy User ID).
+   You can then open `/app/admin` for the main server just by being logged in. Separate several IDs with commas.
+
+Without Discord set up, the site still works: servers are created with an admin password instead of a login.
+Once Discord is set up, creating a server requires logging in, and the person who creates it becomes its owner.
+Owners can add co-admins by Discord ID, set the ER:LC key, rename, hide or delete their server. Max 5 servers per person.

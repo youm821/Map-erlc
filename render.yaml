@@ -15,3 +15,11 @@ services:
         sync: false
       - key: INVITE_CODE
         sync: false
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_CLIENT_SECRET
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: OWNER_DISCORD_IDS
+        sync: false

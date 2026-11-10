@@ -1,52 +1,26 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Servers · ERLC Navigator</title>
 <meta name="description" content="__OG_DESC__">
 <meta property="og:type" content="website"><meta property="og:site_name" content="ERLC Navigator">
 <meta property="og:title" content="__OG_TITLE__"><meta property="og:description" content="__OG_DESC__">
 <meta property="og:url" content="__OG_URL__"><meta property="og:image" content="__OG_IMAGE__">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="__OG_TITLE__"><meta name="twitter:description" content="__OG_DESC__"><meta name="twitter:image" content="__OG_IMAGE__">
-<title>ERLC Navigator · Servers</title>
+<link rel="icon" href="/icon-192.png">
 <style>
-:root{--bg:#f2f2f7;--card:#fff;--text:#1c1c1e;--muted:#6e6e73;--fill:rgba(120,120,128,.16);--accent:#007aff;--sep:rgba(60,60,67,.2)}
-@media(prefers-color-scheme:dark){:root{--bg:#000;--card:#1c1c1e;--text:#f5f5f7;--muted:#a1a1a6;--fill:rgba(120,120,128,.32);--accent:#0a84ff;--sep:rgba(84,84,88,.55)}}
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);padding:20px}
-main{max-width:520px;margin:0 auto}h1{font-size:28px;margin:8px 0 4px}p{color:var(--muted);line-height:1.5;margin:6px 0 16px}
-.card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px}
-label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:12px 2px 5px}
-input{width:100%;background:var(--fill);border:0;border-radius:10px;padding:12px;font-size:16px;color:var(--text);outline:none}
-button{width:100%;margin-top:16px;background:var(--accent);color:#fff;border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:600;cursor:pointer}
-.row{display:flex;gap:8px;align-items:center}.row input[type=checkbox]{width:auto}
-.list a{display:flex;justify-content:space-between;padding:12px 2px;border-bottom:.5px solid var(--sep);color:var(--text);text-decoration:none;font-weight:500}.list a:last-child{border:0}
-.msg{margin-top:12px;font-size:14px}.err{color:#ff453a}.ok{color:#30b650}a{color:var(--accent)}
-code{background:var(--fill);padding:2px 6px;border-radius:6px}
+:root{--bg:#f5f5f7;--card:#fff;--text:#1d1d1f;--muted:#6e6e73;--line:rgba(0,0,0,.1);--accent:#0071e3}
+@media(prefers-color-scheme:dark){:root{--bg:#000;--card:#161618;--text:#f5f5f7;--muted:#a1a1a6;--line:rgba(255,255,255,.14);--accent:#2997ff}}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);padding:24px}
+main{max-width:620px;margin:0 auto}a{color:var(--accent);text-decoration:none}h1{font-size:34px;letter-spacing:-.03em;margin:10px 0 6px}p{color:var(--muted);line-height:1.5}
+.card{background:var(--card);border-radius:20px;padding:8px 20px;box-shadow:inset 0 0 0 1px var(--line);margin:18px 0}
+.card a.row{display:flex;justify-content:space-between;gap:12px;padding:15px 0;border-bottom:1px solid var(--line);color:var(--text);font-weight:600}.card a.row:last-child{border:0}.card a.row span{color:var(--muted);font-weight:400}
+.btn{display:inline-block;background:var(--accent);color:#fff;padding:12px 22px;border-radius:980px;font-weight:600}
 </style></head><body><main>
-<h1>Servers</h1>
-<p>Every ER:LC community gets its own copy of the navigator: its own link, its own admin password, its own saved server key, and its own places, closed roads and buildings.</p>
-<div class="card"><h2 style="margin:0 0 4px;font-size:18px">Create a server</h2>
-<label for="name">Server name</label><input id="name" placeholder="Liberty RP" maxlength="40">
-<label for="slug">Web address</label><input id="slug" placeholder="liberty-rp"><div style="font-size:12px;color:var(--muted);margin:4px 2px" id="preview"></div>
-<label for="pw">Admin password (6+ characters)</label><input id="pw" type="password" autocomplete="new-password">
-<label for="key">ER:LC server key (optional, stored on the server)</label><input id="key" type="password" autocomplete="off" placeholder="Settings → API in ER:LC">
-<div id="inviteRow" hidden><label for="inv">Invite code</label><input id="inv"></div>
-<label class="row" style="margin-top:14px"><input type="checkbox" id="listed"> List this server in the directory below</label>
-<button id="make">Create server</button><div class="msg" id="msg"></div></div>
-<div class="card"><h2 style="margin:0 0 8px;font-size:18px">Directory</h2><div class="list" id="dir">Loading…</div></div>
-<p><a href="/">&larr; Back to the main app</a></p>
-</main>
+<p><a href="/">&larr; ERLC Navigator</a></p>
+<h1>Servers</h1><p>ER:LC communities using ERLC Navigator. Each has its own places, closed roads and buildings.</p>
+<div class="card" id="dir"><p style="padding:12px 0">Loading…</p></div>
+<p><a class="btn" href="/dashboard">Set up your own server</a></p>
 <script>
-const $=id=>document.getElementById(id);
-const slugify=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,32);
-let touched=false;
-$("slug").addEventListener("input",()=>{touched=true;prev()});
-$("name").addEventListener("input",()=>{if(!touched)$("slug").value=slugify($("name").value);prev()});
-function prev(){const s=$("slug").value||"your-address";$("preview").textContent=location.origin+"/s/"+s}
-prev();
-fetch("/api/servers/config").then(r=>r.json()).then(c=>{if(c.invite)$("inviteRow").hidden=false;if(!c.signup){$("make").disabled=true;$("msg").textContent="Creating servers is turned off here.";$("msg").className="msg err"}}).catch(()=>{});
-fetch("/api/servers").then(r=>r.json()).then(l=>{const d=$("dir");d.textContent="";l.forEach(s=>{const a=document.createElement("a");a.href=s.slug==="main"?"/":"/s/"+s.slug;a.textContent=s.name;const sp=document.createElement("span");sp.style.color="var(--muted)";sp.textContent=s.slug==="main"?"/":"/s/"+s.slug;a.appendChild(sp);d.appendChild(a)})}).catch(()=>{$("dir").textContent="Couldn’t load the list."});
-$("make").onclick=async()=>{const m=$("msg");m.className="msg";m.textContent="Creating…";
- try{const r=await fetch("/api/servers",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:$("name").value,slug:$("slug").value,adminPassword:$("pw").value,erlcKey:$("key").value,inviteCode:$("inv").value,listed:$("listed").checked})});
-  const d=await r.json();if(!r.ok){m.className="msg err";m.textContent=d.message||"Couldn’t create the server";return}
-  m.className="msg ok";m.innerHTML="Created! Your link: <a href='"+d.app+"'>"+location.origin+d.app+"</a><br>Admin page: <a href='"+d.admin+"'>"+location.origin+d.admin+"</a>";
- }catch(e){m.className="msg err";m.textContent="Server unreachable"}};
-</script></body></html>
+fetch("/api/servers").then(r=>r.json()).then(l=>{const d=document.getElementById("dir");d.textContent="";l.forEach(s=>{const a=document.createElement("a");a.className="row";const u=s.slug==="main"?"/app":"/s/"+s.slug;a.href=u;const n=document.createElement("b");n.textContent=s.name;const p=document.createElement("span");p.textContent=u;a.append(n,p);d.appendChild(a)})}).catch(()=>{document.getElementById("dir").textContent="Couldn’t load the list."});
+</script></main></body></html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard · ERLC Navigator</title>
+<meta name="description" content="__OG_DESC__">
+<meta property="og:type" content="website"><meta property="og:site_name" content="ERLC Navigator">
+<meta property="og:title" content="__OG_TITLE__"><meta property="og:description" content="__OG_DESC__">
+<meta property="og:url" content="__OG_URL__"><meta property="og:image" content="__OG_IMAGE__">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="__OG_IMAGE__">
+<meta name="robots" content="noindex"><link rel="icon" href="/icon-192.png">
+<style>
+:root{--bg:#f5f5f7;--card:#fff;--text:#1d1d1f;--muted:#6e6e73;--line:rgba(0,0,0,.1);--accent:#0071e3;--fill:rgba(120,120,128,.14)}
+@media(prefers-color-scheme:dark){:root{--bg:#000;--card:#161618;--text:#f5f5f7;--muted:#a1a1a6;--line:rgba(255,255,255,.14);--accent:#2997ff;--fill:rgba(120,120,128,.3)}}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);padding:22px}
+main{max-width:680px;margin:0 auto}a{color:var(--accent);text-decoration:none}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:8px}.top .sp{flex:1}.me{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px}.me img{width:28px;height:28px;border-radius:50%}
+h1{font-size:34px;letter-spacing:-.03em;margin:8px 0 4px}h2{font-size:20px;margin:0 0 12px}h3{font-size:16px;margin:0}p{color:var(--muted);line-height:1.5;margin:6px 0 14px}
+.card{background:var(--card);border-radius:20px;padding:20px;box-shadow:inset 0 0 0 1px var(--line);margin:16px 0}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:14px 2px 5px}
+input[type=text],input[type=password],input:not([type]){width:100%;background:var(--fill);border:0;border-radius:11px;padding:12px;font-size:16px;color:var(--text);outline:none;font-family:inherit}
+.row{display:flex;gap:8px;align-items:center}.row>input{flex:1;min-width:0}.chk{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--text);margin:14px 0 0;font-weight:500}
+button,.btn{display:inline-block;background:var(--accent);color:#fff;border:0;border-radius:980px;padding:11px 18px;font-weight:600;font-size:15px;cursor:pointer;font-family:inherit;text-decoration:none;white-space:nowrap}
+button.sec{background:var(--fill);color:var(--accent)}button.red{background:rgba(255,69,58,.15);color:#ff453a}button.disc{background:#5865f2;color:#fff}
+.msg{font-size:14px;margin-top:10px}.err{color:#ff453a}.ok{color:#30b650}
+.badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:980px;background:var(--fill);color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-left:8px;vertical-align:middle}
+.links{display:flex;gap:14px;margin:6px 0 4px;font-weight:600;font-size:15px}
+.sec2{border-top:1px solid var(--line);margin-top:16px;padding-top:2px}
+.chipx{display:inline-flex;gap:8px;align-items:center;background:var(--fill);border-radius:980px;padding:5px 6px 5px 12px;margin:6px 6px 0 0;font-size:13px;font-family:ui-monospace,monospace}.chipx button{padding:2px 9px;font-size:13px}
+small{color:var(--muted);display:block;line-height:1.45;margin-top:6px}
+</style></head><body><main>
+<div class="top"><a href="/">&larr; ERLC Navigator</a><div class="sp"></div><span id="who"></span></div>
+<h1>Dashboard</h1>
+<div id="gate" class="card" hidden><h2>Log in to set up your server</h2><p>Your Discord account is how we know a server belongs to you. We only read your Discord name and picture.</p><a class="btn disc" href="/auth/discord?next=/dashboard">Log in with Discord</a></div>
+<div id="mine" hidden><h2 style="margin-top:24px">Your servers</h2><div id="list"></div><p id="none" hidden>You don’t have a server yet. Create one below.</p></div>
+<div id="create" class="card" hidden><h2>Create a server</h2>
+<label for="name">Server name</label><input id="name" placeholder="Liberty RP" maxlength="40" autocomplete="off">
+<label for="slug">Web address</label><input id="slug" placeholder="liberty-rp" autocomplete="off"><small id="prev"></small>
+<label for="key">ER:LC server key (optional, stored encrypted)</label><input id="key" type="password" autocomplete="off" placeholder="In ER:LC: Settings → API"><small>This lets the map show your live players and calls. You can add it later.</small>
+<div id="pwRow" hidden><label for="pw">Admin password (6+ characters)</label><input id="pw" type="password" autocomplete="new-password"></div>
+<div id="invRow" hidden><label for="inv">Invite code</label><input id="inv" autocomplete="off"></div>
+<label class="chk"><input type="checkbox" id="listed"> Show my server in the public list</label>
+<p style="margin-top:16px"><button id="make">Create server</button></p><div class="msg" id="cmsg"></div></div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let ME=null,CFG={};
+async function api(method,url,body){try{const r=await fetch(url,{method,headers:body?{"Content-Type":"application/json"}:{},body:body?JSON.stringify(body):undefined});let d={};try{d=await r.json()}catch(e){}return{ok:r.ok,data:d}}catch(e){return{ok:false,data:{message:"Server unreachable"}}}}
+const slugify=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,32);
+function mk(tag,props,...kids){const e=document.createElement(tag);Object.assign(e,props||{});kids.forEach(k=>e.append(k));return e}
+function say(el,ok,t){el.className="msg "+(ok?"ok":"err");el.textContent=t}
+async function init(){
+ const [m,c]=await Promise.all([api("GET","/api/me"),api("GET","/api/servers/config")]);ME=m.data.user;CFG=c.data;
+ if(ME){const w=mk("span",{className:"me"});w.append(mk("img",{src:ME.avatar,alt:""}),mk("span",{textContent:ME.name}),mk("a",{href:"/auth/logout",textContent:"Log out"}));$("who").appendChild(w)}
+ if(!ME&&CFG.loginRequired){$("gate").hidden=false;return}
+ $("create").hidden=false;$("pwRow").hidden=!!ME;$("invRow").hidden=!CFG.invite;
+ if(!CFG.signup){$("make").disabled=true;say($("cmsg"),false,"Creating servers is turned off on this site.")}
+ if(ME)loadMine();
+}
+async function loadMine(){
+ const r=await api("GET","/api/my/servers");const L=$("list");L.textContent="";$("mine").hidden=false;
+ const arr=r.ok?r.data:[];$("none").hidden=arr.length>0;
+ arr.forEach(s=>L.appendChild(card(s)));
+}
+function card(s){
+ const base=s.main?"/app":"/s/"+s.slug,c=mk("div",{className:"card"});
+ c.append(mk("h3",{},s.name,mk("span",{className:"badge",textContent:s.role})));
+ const lk=mk("div",{className:"links"});lk.append(mk("a",{href:base,textContent:"Open map"}),mk("a",{href:base+"/admin",textContent:"Admin page"}));c.append(lk);
+ const api_=u=>"/api/s/"+s.slug+u;
+ // name + listing
+ const nm=mk("input",{value:s.name,maxLength:40}),ls=mk("input",{type:"checkbox",checked:!!s.listed}),m1=mk("div",{className:"msg"});
+ const sv=mk("button",{className:"sec",textContent:"Save"});sv.onclick=async()=>{const b={name:nm.value};if(!s.main)b.listed=ls.checked;const r=await api("POST",api_("/settings"),b);say(m1,r.ok,r.ok?"Saved":r.data.message)};
+ const a=mk("div",{className:"sec2"});a.append(mk("label",{textContent:"Server name"}),mk("div",{className:"row"},nm,sv));
+ if(!s.main)a.append(mk("label",{className:"chk"},ls,"Show in the public list"));a.append(m1);c.append(a);
+ // key
+ const ki=mk("input",{type:"password",placeholder:s.hasKey?"A key is saved. Paste a new one to replace it":"Paste ER:LC server key",autocomplete:"off"}),m2=mk("div",{className:"msg"});
+ const ks=mk("button",{className:"sec",textContent:"Save key"});ks.onclick=async()=>{const r=await api("POST",api_("/key"),{key:ki.value});ki.value="";say(m2,r.ok,r.ok?(r.data.hasKey?"Key saved (encrypted)":"Key removed"):r.data.message)};
+ const kc=mk("button",{className:"sec",textContent:"Remove"});kc.onclick=async()=>{const r=await api("POST",api_("/key"),{key:""});say(m2,r.ok,r.ok?"Key removed":r.data.message)};
+ const k=mk("div",{className:"sec2"});k.append(mk("label",{textContent:"ER:LC server key"}),mk("div",{className:"row"},ki,ks,kc),m2);c.append(k);
+ // admins
+ if(s.role==="owner"&&!s.main){
+  const box=mk("div",{className:"sec2"}),chips=mk("div"),m3=mk("div",{className:"msg"});
+  const draw=ids=>{chips.textContent="";ids.forEach(id=>{const x=mk("button",{className:"sec",textContent:"×"});x.onclick=async()=>{const r=await api("POST",api_("/admins"),{remove:id});if(r.ok)draw(r.data.admins);else say(m3,false,r.data.message)};chips.appendChild(mk("span",{className:"chipx"},id,x))})};
+  draw(s.admins||[]);
+  const ai=mk("input",{placeholder:"Discord user ID",inputMode:"numeric"}),ab=mk("button",{className:"sec",textContent:"Add admin"});
+  ab.onclick=async()=>{const r=await api("POST",api_("/admins"),{add:ai.value.trim()});if(r.ok){draw(r.data.admins);ai.value="";say(m3,true,"Admin added")}else say(m3,false,r.data.message)};
+  box.append(mk("label",{textContent:"Co-admins (can edit the map)"}),chips,mk("div",{className:"row",style:"margin-top:8px"},ai,ab),mk("small",{textContent:"They get a Discord ID from Discord: Settings → Advanced → Developer Mode, then right-click their name → Copy User ID."}),m3);c.append(box);
+  // delete
+  const dbox=mk("div",{className:"sec2"}),di=mk("input",{placeholder:"Type "+s.slug+" to confirm"}),db=mk("button",{className:"red",textContent:"Delete server"}),m4=mk("div",{className:"msg"});
+  db.onclick=async()=>{if(di.value.trim()!==s.slug){say(m4,false,"Type the web address to confirm");return}const r=await api("DELETE","/api/s/"+s.slug);if(r.ok)loadMine();else say(m4,false,r.data.message)};
+  dbox.append(mk("label",{textContent:"Delete this server and all its saved places, closures and buildings"}),mk("div",{className:"row"},di,db),m4);c.append(dbox);
+ }
+ return c;
+}
+let touched=false;
+$("slug").addEventListener("input",()=>{touched=true;prev()});
+$("name").addEventListener("input",()=>{if(!touched)$("slug").value=slugify($("name").value);prev()});
+function prev(){$("prev").textContent=location.origin+"/s/"+($("slug").value||"your-address")}prev();
+$("make").onclick=async()=>{const m=$("cmsg");say(m,true,"Creating…");
+ const r=await api("POST","/api/servers",{name:$("name").value,slug:$("slug").value,erlcKey:$("key").value,adminPassword:$("pw").value,inviteCode:$("inv").value,listed:$("listed").checked});
+ if(!r.ok){say(m,false,r.data.message||"Couldn’t create the server");return}
+ m.className="msg ok";m.textContent="";m.append("Created! Your link: ",mk("a",{href:r.data.app,textContent:location.origin+r.data.app}));
+ $("name").value=$("slug").value=$("key").value=$("pw").value="";touched=false;prev();if(ME)loadMine();
+};
+init();
+</script></body></html>
