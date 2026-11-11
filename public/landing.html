@@ -10,82 +10,159 @@
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="__OG_TITLE__"><meta name="twitter:description" content="__OG_DESC__"><meta name="twitter:image" content="__OG_IMAGE__">
 <meta name="theme-color" content="#0b0d12"><link rel="icon" href="/icon-192.png"><link rel="apple-touch-icon" href="/icon-192.png">
 <style>
-:root{--bg:#f5f5f7;--card:#fff;--text:#1d1d1f;--muted:#6e6e73;--line:rgba(0,0,0,.1);--accent:#0071e3;--nav:rgba(245,245,247,.8)}
-@media(prefers-color-scheme:dark){:root{--bg:#000;--card:#161618;--text:#f5f5f7;--muted:#a1a1a6;--line:rgba(255,255,255,.14);--accent:#2997ff;--nav:rgba(0,0,0,.75)}}
-*{box-sizing:border-box}html{scroll-behavior:smooth}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+:root{--bg:#fbfbfd;--bg2:#f2f2f7;--card:#fff;--text:#1d1d1f;--muted:#5f5f66;--line:rgba(0,0,0,.09);--accent:#0071e3;--nav:rgba(251,251,253,.78);--shadow:0 10px 40px rgba(0,0,0,.08)}
+@media(prefers-color-scheme:dark){:root{--bg:#000;--bg2:#0c0c0e;--card:#151517;--text:#f5f5f7;--muted:#a1a1a6;--line:rgba(255,255,255,.12);--accent:#2997ff;--nav:rgba(0,0,0,.7);--shadow:0 10px 40px rgba(0,0,0,.5)}}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
-nav{position:sticky;top:0;z-index:20;backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);background:var(--nav);border-bottom:1px solid var(--line)}
-.bar{max-width:1080px;margin:0 auto;padding:12px 22px;display:flex;align-items:center;gap:22px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}.brand img{width:28px;height:28px;border-radius:7px}
-.links{display:flex;gap:20px;font-size:14px;color:var(--muted);margin-left:8px}.links a:hover{color:var(--text)}
-.sp{flex:1}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:980px;font-weight:600;font-size:15px;border:0;cursor:pointer;font-family:inherit}
-.btn.pri{background:var(--accent);color:#fff}.btn.sec{background:var(--card);color:var(--text);box-shadow:inset 0 0 0 1px var(--line)}
-.btn.disc{background:#5865f2;color:#fff}.btn.sm{padding:7px 14px;font-size:13px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 22px}
+nav{position:sticky;top:0;z-index:50;backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);background:var(--nav);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:22px;padding:11px 0}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;letter-spacing:-.01em}.brand img{width:28px;height:28px;border-radius:7px}
+.links{display:flex;gap:22px;font-size:14px;color:var(--muted);margin-left:10px}.links a:hover{color:var(--text)}.sp{flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:980px;font-weight:600;font-size:16px;border:0;cursor:pointer;font-family:inherit;transition:transform .15s,box-shadow .2s,background .2s}
+.btn:hover{transform:translateY(-1px)}.btn:active{transform:scale(.98)}
+.btn.pri{background:var(--accent);color:#fff;box-shadow:0 6px 20px color-mix(in srgb,var(--accent) 40%,transparent)}
+.btn.sec{background:var(--card);color:var(--text);box-shadow:inset 0 0 0 1px var(--line)}.btn.disc{background:#5865f2;color:#fff}
+.btn.sm{padding:8px 15px;font-size:13px;box-shadow:none}
 .me{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}.me img{width:28px;height:28px;border-radius:50%}
-.hero{max-width:1080px;margin:0 auto;padding:70px 22px 40px;display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center}
-h1{font-size:clamp(40px,6.2vw,72px);line-height:1.03;letter-spacing:-.035em;margin:0 0 18px;font-weight:800}
-h1 span{background:linear-gradient(90deg,#2997ff,#bf5af2);-webkit-background-clip:text;background-clip:text;color:transparent}
-.lead{font-size:clamp(18px,2.2vw,23px);line-height:1.4;color:var(--muted);margin:0 0 28px;max-width:30em}
+/* hero */
+.hero{position:relative;overflow:hidden}
+.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;filter:blur(80px);opacity:.55;z-index:0;animation:float 14s ease-in-out infinite}
+.hero::before{width:520px;height:520px;background:#2997ff;left:-140px;top:-120px}
+.hero::after{width:480px;height:480px;background:#bf5af2;right:-120px;top:60px;animation-delay:-6s}
+@keyframes float{50%{transform:translate(40px,30px) scale(1.08)}}
+.hg{position:relative;z-index:1;display:grid;grid-template-columns:1.05fr .95fr;gap:20px;align-items:center;padding:74px 0 54px}
+.pill{display:inline-flex;gap:8px;align-items:center;font-size:13px;font-weight:600;padding:7px 14px;border-radius:980px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);margin-bottom:22px}
+.pill i{width:8px;height:8px;border-radius:50%;background:#30d158;box-shadow:0 0 0 4px rgba(48,209,88,.2)}
+h1{font-size:clamp(42px,6.4vw,76px);line-height:1.02;letter-spacing:-.04em;margin:0 0 20px;font-weight:800}
+h1 em{font-style:normal;background:linear-gradient(90deg,#2997ff,#bf5af2 60%,#ff375f);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:clamp(18px,2.1vw,22px);line-height:1.45;color:var(--muted);margin:0 0 30px;max-width:30em}
 .cta{display:flex;gap:12px;flex-wrap:wrap}
-.phone{display:flex;justify-content:center}.phone img{width:min(330px,80vw);height:auto;filter:drop-shadow(0 40px 60px rgba(0,0,0,.35))}
-section{max-width:1080px;margin:0 auto;padding:60px 22px}
-h2{font-size:clamp(30px,4vw,44px);letter-spacing:-.03em;margin:0 0 10px;font-weight:800}
-.sub{color:var(--muted);font-size:19px;margin:0 0 32px;max-width:36em;line-height:1.4}
+.badges{display:flex;gap:18px;flex-wrap:wrap;margin-top:26px;color:var(--muted);font-size:14px;font-weight:500}.badges span::before{content:"✓";color:#30d158;font-weight:800;margin-right:6px}
+.stage{position:relative;display:flex;justify-content:center}
+.stage img.ph{width:min(340px,78vw);height:auto;filter:drop-shadow(0 50px 70px rgba(0,0,0,.4));position:relative;z-index:1;animation:bob 7s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-10px)}}
+.chip{position:absolute;z-index:2;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:16px;background:var(--card);box-shadow:var(--shadow),inset 0 0 0 1px var(--line);font-size:13px;font-weight:600;white-space:nowrap}
+.chip b{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;color:#fff;font-size:14px}
+.c1{left:-6px;top:20%;animation:bob 6s ease-in-out infinite}.c2{right:-10px;top:46%;animation:bob 8s ease-in-out infinite reverse}.c3{left:2%;bottom:12%;animation:bob 7s ease-in-out infinite}
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-radius:22px;overflow:hidden;box-shadow:var(--shadow)}
+.stat{background:var(--card);padding:26px 18px;text-align:center}.stat b{display:block;font-size:clamp(28px,4vw,40px);letter-spacing:-.03em;font-weight:800}.stat span{color:var(--muted);font-size:14px}
+section{padding:84px 0}
+.eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+h2{font-size:clamp(32px,4.6vw,52px);letter-spacing:-.035em;line-height:1.05;margin:0 0 14px;font-weight:800}
+.sub{color:var(--muted);font-size:clamp(17px,2vw,21px);line-height:1.45;margin:0 0 40px;max-width:34em}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.card{background:var(--card);border-radius:22px;padding:24px;box-shadow:inset 0 0 0 1px var(--line)}
-.card .ic{font-size:30px;margin-bottom:12px}.card h3{margin:0 0 6px;font-size:19px;letter-spacing:-.01em}.card p{margin:0;color:var(--muted);line-height:1.5;font-size:15px}
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;counter-reset:s}
-.step{background:var(--card);border-radius:22px;padding:24px;box-shadow:inset 0 0 0 1px var(--line);position:relative}
-.step::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;margin-bottom:12px}
-.step h3{margin:0 0 6px;font-size:19px}.step p{margin:0;color:var(--muted);line-height:1.5;font-size:15px}
-.band{background:var(--card);border-radius:28px;padding:36px;text-align:center;box-shadow:inset 0 0 0 1px var(--line)}
-.dir{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:20px 0 0}.dir a{padding:9px 16px;border-radius:980px;background:var(--bg);box-shadow:inset 0 0 0 1px var(--line);font-weight:600;font-size:14px}.dir a:hover{box-shadow:inset 0 0 0 1px var(--accent)}
+.card{background:var(--card);border-radius:24px;padding:26px;box-shadow:inset 0 0 0 1px var(--line);transition:transform .25s,box-shadow .25s}
+.card:hover{transform:translateY(-4px);box-shadow:var(--shadow),inset 0 0 0 1px var(--line)}
+.ico{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;margin-bottom:16px;color:#fff}
+.ico svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.card h3{margin:0 0 8px;font-size:20px;letter-spacing:-.015em}.card p{margin:0;color:var(--muted);line-height:1.55;font-size:15.5px}
+/* demo */
+.demo{background:var(--bg2);border-radius:36px;padding:56px 48px;display:grid;grid-template-columns:1fr auto;gap:50px;align-items:center;box-shadow:inset 0 0 0 1px var(--line)}
+.demo ul{list-style:none;padding:0;margin:26px 0 30px;display:grid;gap:14px}.demo li{display:flex;gap:12px;color:var(--muted);font-size:17px;line-height:1.4}.demo li::before{content:"";flex:none;width:22px;height:22px;border-radius:50%;background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center/14px no-repeat}
+.frame{width:316px;height:650px;border-radius:50px;background:#0a0a0b;padding:11px;box-shadow:0 0 0 2px #3a3a3c,0 40px 80px rgba(0,0,0,.35);position:relative}
+.frame iframe{width:100%;height:100%;border:0;border-radius:40px;background:#a9d6f5;display:block}
+.frame::before{content:"";position:absolute;z-index:3;top:20px;left:50%;transform:translateX(-50%);width:92px;height:26px;border-radius:14px;background:#000;pointer-events:none}
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;position:relative}
+.step{background:var(--card);border-radius:24px;padding:26px;box-shadow:inset 0 0 0 1px var(--line)}
+.step .n{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;margin-bottom:16px}
+.step h3{margin:0 0 8px;font-size:20px}.step p{margin:0;color:var(--muted);line-height:1.55;font-size:15.5px}
+/* directory + faq + cta */
+.dirbox{background:var(--card);border-radius:30px;padding:40px;text-align:center;box-shadow:inset 0 0 0 1px var(--line)}
+.dir{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:22px}.dir a{padding:10px 18px;border-radius:980px;background:var(--bg2);box-shadow:inset 0 0 0 1px var(--line);font-weight:600;font-size:15px;transition:.2s}.dir a:hover{box-shadow:inset 0 0 0 1px var(--accent);color:var(--accent)}
+.faq{max-width:760px;margin:0 auto}.faq details{border-bottom:1px solid var(--line);padding:20px 4px}.faq summary{cursor:pointer;font-weight:700;font-size:19px;list-style:none;display:flex;justify-content:space-between;gap:16px;letter-spacing:-.01em}
+.faq summary::-webkit-details-marker{display:none}.faq summary::after{content:"+";font-size:26px;line-height:1;color:var(--muted);transition:transform .2s}.faq details[open] summary::after{transform:rotate(45deg)}
+.faq p{color:var(--muted);line-height:1.6;font-size:16.5px;margin:12px 0 0}
+.final{border-radius:36px;padding:70px 30px;text-align:center;color:#fff;background:radial-gradient(circle at 20% 20%,#2997ff,transparent 55%),radial-gradient(circle at 85% 80%,#bf5af2,transparent 55%),#0b0d12;box-shadow:var(--shadow)}
+.final h2{color:#fff}.final p{color:rgba(255,255,255,.8);font-size:20px;margin:0 auto 30px;max-width:30em;line-height:1.45}
+.final .btn.sec{background:#fff;color:#111;box-shadow:none}
 .note{background:rgba(255,69,58,.12);color:#ff453a;border-radius:14px;padding:12px 16px;margin:14px auto;max-width:640px;text-align:center;font-weight:600;display:none}
-footer{max-width:1080px;margin:0 auto;padding:30px 22px 60px;color:var(--muted);font-size:13px;line-height:1.6;border-top:1px solid var(--line)}
-@media(max-width:820px){.hero{grid-template-columns:1fr;padding-top:36px;text-align:center}.lead{margin-left:auto;margin-right:auto}.cta{justify-content:center}.grid,.steps{grid-template-columns:1fr}.links{display:none}}
+footer{border-top:1px solid var(--line);padding:34px 0 60px;color:var(--muted);font-size:13px;line-height:1.7}
+.fl{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:12px;font-size:14px;font-weight:600;color:var(--text)}
+.rv{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}.rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+@media(max-width:900px){.hg{grid-template-columns:1fr;text-align:center;padding-top:40px}.lead{margin-left:auto;margin-right:auto}.cta,.badges{justify-content:center}.chip{display:none}
+ .grid,.steps{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.demo{grid-template-columns:1fr;padding:34px 22px;text-align:center}.demo li{text-align:left}.frame{margin:0 auto}.links{display:none}section{padding:56px 0}}
 </style></head><body>
-<nav><div class="bar">
+<nav><div class="wrap bar">
 <a class="brand" href="/"><img src="/icon-192.png" alt="">ERLC Navigator</a>
-<div class="links"><a href="#features">Features</a><a href="#setup">Set up</a><a href="/servers">Servers</a></div><div class="sp"></div>
-<span id="auth"><a class="btn disc sm" id="login" href="/auth/discord?next=/dashboard">Log in with Discord</a></span>
+<div class="links"><a href="#features">Features</a><a href="#demo">Live demo</a><a href="#setup">Set up</a><a href="#faq">FAQ</a></div><div class="sp"></div>
+<span id="auth"><a class="btn disc sm" href="/auth/discord?next=/dashboard">Log in with Discord</a></span>
 <a class="btn pri sm" href="/app">Open the map</a>
 </div></nav>
 <div class="note" id="note">Discord login didn’t work. Please try again.</div>
-<header class="hero"><div>
-<h1>Maps for <span>Liberty County</span>.</h1>
-<p class="lead">Navigation built for ER:LC. See live players and calls on the map, get turn-by-turn directions, and find the nearest hospital, police or fire station.</p>
+
+<header class="hero"><div class="wrap hg"><div>
+<div class="pill"><i></i>Free for every ER:LC server</div>
+<h1>The map your <em>Liberty County</em> was missing.</h1>
+<p class="lead">Live players and calls on the map, turn-by-turn directions, and the nearest hospital, police or fire station. Built for ER:LC and styled like the maps on your phone.</p>
 <div class="cta"><a class="btn pri" href="/app">Open the map</a><a class="btn sec" href="/dashboard">Set up your server</a></div>
-</div><div class="phone"><img src="/hero-phone.png" alt="ERLC Navigator on a phone, showing a route with turn-by-turn directions" width="330" height="562"></div></header>
+<div class="badges"><span>No download</span><span>Works on phones</span><span>Windows overlay</span></div>
+</div><div class="stage">
+<div class="chip c1"><b style="background:#30d158">●</b>Players on the map</div>
+<div class="chip c2"><b style="background:#ff3b30">!</b>Call #402 · Robbery</div>
+<div class="chip c3"><b style="background:#0a84ff">↱</b>In 300 ft, turn right</div>
+<img class="ph" src="/hero-phone.png" alt="ERLC Navigator on a phone, showing a route with turn-by-turn directions" width="340" height="579">
+</div></div></header>
 
-<section id="features"><h2>Everything on one map.</h2><p class="sub">Made for roleplay: it keeps up with your server instead of guessing.</p>
+<div class="wrap rv"><div class="stats">
+<div class="stat"><b>146</b><span>postals mapped</span></div><div class="stat"><b>216</b><span>buildings, raised in 3D</span></div>
+<div class="stat"><b>11</b><span>place categories to find</span></div><div class="stat"><b>2D + 3D</b><span>map views</span></div>
+</div></div>
+
+<section id="features"><div class="wrap">
+<div class="eyebrow rv">Features</div><h2 class="rv">Made for roleplay.</h2><p class="sub rv">It keeps up with your server instead of guessing, and it’s simple enough to use mid-call.</p>
 <div class="grid">
-<div class="card"><div class="ic">📍</div><h3>Live players</h3><p>Everyone on your server appears on the map, color-coded by team. Your own car follows you as you drive.</p></div>
-<div class="card"><div class="ic">🧭</div><h3>Turn-by-turn</h3><p>Search a postal, street, building or player and get directions with distances in feet and miles. Leave the route and it reroutes.</p></div>
-<div class="card"><div class="ic">🚨</div><h3>Calls on the map</h3><p>Emergency and mod calls appear as pins. Tap one to route straight to it.</p></div>
-<div class="card"><div class="ic">🏥</div><h3>Nearest help</h3><p>One tap finds the closest hospital, police, sheriff, fire station, bank, gas station and more.</p></div>
-<div class="card"><div class="ic">🏙️</div><h3>2D and 3D</h3><p>A drawn Apple-style map with raised buildings. Switch between flat and tilted any time.</p></div>
-<div class="card"><div class="ic">🖥️</div><h3>Phone, browser, desktop</h3><p>Add it to your home screen, or use the Windows app as an overlay on top of Roblox.</p></div>
-</div></section>
+<div class="card rv"><div class="ico" style="background:#30d158"><svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div><h3>Live players</h3><p>Everyone on your server shows up on the map, color-coded by team, with callsigns. Your own car follows you as you drive.</p></div>
+<div class="card rv"><div class="ico" style="background:#0a84ff"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg></div><h3>Turn-by-turn directions</h3><p>Search a postal, street, building or player. Get distances in feet and miles, and it reroutes if you leave the route.</p></div>
+<div class="card rv"><div class="ico" style="background:#ff3b30"><svg viewBox="0 0 24 24"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.5v.5"/></svg></div><h3>Calls on the map</h3><p>Emergency and mod calls appear as pins. Tap one to route straight to the scene.</p></div>
+<div class="card rv"><div class="ico" style="background:#ff375f"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg></div><h3>Nearest help</h3><p>One tap finds the closest hospital, police, sheriff, fire station, bank, gas station, ATM and more.</p></div>
+<div class="card rv"><div class="ico" style="background:#bf5af2"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12L4 7.5M12 12v9"/></svg></div><h3>2D and 3D</h3><p>A drawn, Apple-style map of the whole county. Tilt it into 3D to see buildings and houses raised off the ground.</p></div>
+<div class="card rv"><div class="ico" style="background:#ff9f0a"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/></svg></div><h3>Phone, browser, desktop</h3><p>Add it to your home screen, or use the Windows app as a see-through overlay on top of Roblox.</p></div>
+</div></div></section>
 
-<section id="setup"><h2>Set up your own server.</h2><p class="sub">Every community gets its own copy, with its own places, closed roads and ER:LC key. It takes about a minute.</p>
+<section id="demo" style="padding-top:0"><div class="wrap"><div class="demo rv"><div>
+<div class="eyebrow">Live demo</div><h2>Try it right here.</h2><p class="sub" style="margin-bottom:0">This is the real app, running inside the phone. Search a postal like 327, tap a building, switch to 3D.</p>
+<ul><li>Search for a postal, a street or a building</li><li>Drag and zoom the map, or tilt it to 3D</li><li>Open the full app for live players and calls</li></ul>
+<a class="btn pri" href="/app">Open the full map</a></div>
+<div class="frame"><iframe src="/app" loading="lazy" title="ERLC Navigator live demo"></iframe></div></div></div></section>
+
+<section id="setup" style="padding-top:0"><div class="wrap">
+<div class="eyebrow rv">For server owners</div><h2 class="rv">Set up your own server in a minute.</h2><p class="sub rv">Every community gets its own copy: its own link, places, closed roads, buildings and ER:LC key.</p>
 <div class="steps">
-<div class="step"><h3>Log in with Discord</h3><p>Your Discord account is how we know the server is yours. No passwords to remember.</p></div>
-<div class="step"><h3>Create your server</h3><p>Pick a name and a web address, and paste your ER:LC server key so live players work.</p></div>
-<div class="step"><h3>Make it yours</h3><p>Tag your hospital and stations, close roads, add buildings, and invite co-admins. Then share your link.</p></div>
-</div>
-<p style="margin-top:26px"><a class="btn pri" href="/dashboard">Create your server</a></p></section>
+<div class="step rv"><div class="n">1</div><h3>Log in with Discord</h3><p>Your Discord account is how we know the server is yours. No passwords to remember.</p></div>
+<div class="step rv"><div class="n">2</div><h3>Create your server</h3><p>Pick a name and a web address, and paste your ER:LC server key so live players and calls work.</p></div>
+<div class="step rv"><div class="n">3</div><h3>Make it yours</h3><p>You land in your own admin panel to tag your hospital and stations, close roads and add buildings. Then share your link.</p></div>
+</div><p style="margin-top:30px" class="rv"><a class="btn pri" href="/dashboard">Create your server</a></p></div></section>
 
-<section><div class="band"><h2>Servers using ERLC Navigator</h2><p class="sub" style="margin:0 auto">Open one, or add yours to the list.</p><div class="dir" id="dir">Loading…</div></div></section>
+<section style="padding-top:0"><div class="wrap"><div class="dirbox rv"><h2 style="font-size:clamp(28px,3.6vw,40px)">Servers using ERLC Navigator</h2><p class="sub" style="margin:0 auto">Open one, or add yours to the list.</p><div class="dir" id="dir">Loading…</div></div></div></section>
 
-<footer>ERLC Navigator is a fan-made tool. It is not made by, affiliated with, or endorsed by Police Roleplay Community or Roblox. “ER:LC” and “Emergency Response: Liberty County” belong to their owners. Your ER:LC server key is stored encrypted and is only used to ask the ER:LC API for your server’s players and calls.</footer>
+<section id="faq" style="padding-top:0"><div class="wrap"><div class="eyebrow rv" style="text-align:center">FAQ</div><h2 class="rv" style="text-align:center;margin-bottom:34px">Good questions.</h2>
+<div class="faq rv">
+<details><summary>Is it free?</summary><p>Yes. Using the map and creating a server cost nothing.</p></details>
+<details><summary>How does it know where I am?</summary><p>It asks the ER:LC API, which reports each player’s postal code and coordinates. Add your Roblox name in Settings and the map puts your car on it.</p></details>
+<details><summary>Is my ER:LC server key safe?</summary><p>The key is stored encrypted on the server and only used to ask the ER:LC API for your server’s players and calls. It is never shown to visitors.</p></details>
+<details><summary>Do I need to install anything?</summary><p>No. It runs in your browser, and you can add it to your phone’s home screen. There is also a Windows app with an always-on-top overlay if you want one.</p></details>
+<details><summary>Who can edit my server’s map?</summary><p>You, and anyone you add as a co-admin by their Discord ID. Everyone else can only view it.</p></details>
+<details><summary>Is this official?</summary><p>No. ERLC Navigator is a fan-made tool and is not affiliated with Police Roleplay Community or Roblox.</p></details>
+</div></div></section>
+
+<section style="padding-top:0"><div class="wrap"><div class="final rv"><h2>Find your way around Liberty County.</h2><p>Open the map now, or set up a server for your community.</p>
+<div class="cta" style="justify-content:center"><a class="btn sec" href="/app">Open the map</a><a class="btn disc" href="/dashboard">Set up your server</a></div></div></div></section>
+
+<footer><div class="wrap"><div class="fl"><a href="/app">Map</a><a href="/dashboard">Dashboard</a><a href="/servers">Servers</a></div>
+ERLC Navigator is a fan-made tool. It is not made by, affiliated with, or endorsed by Police Roleplay Community or Roblox. “ER:LC” and “Emergency Response: Liberty County” belong to their owners.</div></footer>
 <script>
 const $=id=>document.getElementById(id);
 if(new URLSearchParams(location.search).get("login")==="failed")$("note").style.display="block";
 fetch("/api/me").then(r=>r.json()).then(m=>{
- if(!m.discord){$("auth").innerHTML="";return}
- if(m.user){const a=$("auth");a.innerHTML="";const w=document.createElement("span");w.className="me";const i=document.createElement("img");i.src=m.user.avatar;i.alt="";const s=document.createElement("a");s.href="/dashboard";s.textContent=m.user.name;w.append(i,s);a.appendChild(w)}
+ if(!m.discord){$("auth").textContent="";return}
+ if(m.user){const a=$("auth");a.textContent="";const w=document.createElement("span");w.className="me";const i=document.createElement("img");i.src=m.user.avatar;i.alt="";const s=document.createElement("a");s.href="/dashboard";s.textContent=m.user.name;w.append(i,s);a.appendChild(w)}
 }).catch(()=>{});
 fetch("/api/servers").then(r=>r.json()).then(l=>{const d=$("dir");d.textContent="";l.forEach(s=>{const a=document.createElement("a");a.href=s.slug==="main"?"/app":"/s/"+s.slug;a.textContent=s.name;d.appendChild(a)})}).catch(()=>{$("dir").textContent="Couldn’t load the list."});
+const io="IntersectionObserver" in window?new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}}),{threshold:.12}):null;
+document.querySelectorAll(".rv").forEach((e,i)=>{if(io){e.style.transitionDelay=(i%3)*70+"ms";io.observe(e)}else e.classList.add("in")});
 </script></body></html>

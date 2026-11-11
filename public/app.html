@@ -107,6 +107,11 @@ body.admin #vmode{display:none}
 #ub3G{display:none}body.d3 #ub3G{display:inline}body.d3 #ub2G{display:none}
 
 .dlogin{display:block;text-align:center;margin-top:10px;padding:11px;border-radius:10px;background:#5865f2;color:#fff!important;font-weight:600}
+
+.welcome{background:rgba(48,209,88,.14);border-radius:12px;padding:12px 14px;margin:10px 0;font-size:13px;line-height:1.5;color:var(--text)}
+.welcome ol{margin:6px 0 0;padding-left:18px}.welcome li{margin:3px 0;background:none;display:list-item;padding:0;counter-increment:none}.welcome li::before{content:none}.welcome ol{list-style:decimal;background:none}
+.ahead span a+a{margin-left:12px}
+.welcome li{border:0!important}
 </style>
 </head>
 <body>
@@ -152,7 +157,8 @@ body.admin #vmode{display:none}
 </div>
 </div>
 <aside id="adminPanel">
-<div class="ahead"><h1>Admin</h1><a id="aback" href="#">&larr; Back to app</a></div>
+<div class="ahead"><h1>Admin</h1><span><a id="aback" href="#">&larr; Back to app</a> <a href="/dashboard">Dashboard</a></span></div>
+<div id="welcome" class="welcome" hidden><b>Welcome to your server!</b><ol><li>Paste your ER:LC server key below (Server key) so live players and calls work.</li><li>Choose <b>Places</b>, type a name, pick a category, and tap a building to tag your hospital, police and fire stations.</li><li>Use <b>Roads &rarr; Close road</b> for closures, and <b>Buildings</b> to add any that are missing.</li><li>Everything saves automatically. Share your link: <b id="wlink"></b></li></ol></div>
 <div id="alock"><label id="alab" for="apin">Admin password</label><input id="apin" type="password"><button id="aun" style="margin-top:8px">Unlock</button><a class="dlogin" id="adisc" href="/auth/discord">Log in with Discord</a></div>
 <div id="apanel" hidden>
 <label>Edit</label><div class="row"><button id="tgR" class="on">Roads</button><button id="tgP">Postals</button><button id="tgL">Places</button><button id="tgB">Buildings</button></div>
@@ -469,6 +475,7 @@ async function loadRemote(){try{const r=await fetch(API_BASE+"/map");if(!r.ok)re
  if(d.roads&&d.postals&&JSON.stringify(d)!==JSON.stringify(getData())&&!hd&&!adminOn()){setData(d);refreshSel();drawEd();nav(false)}}catch(e){}}
 $("aun").onclick=async()=>{const v=$("apin").value;if(!v)return;
  try{const r=await fetch(API_BASE+"/auth",{method:"POST",headers:{"x-admin-password":v}});if(r.ok){adminPw=v;unl()}else ast("Wrong admin password")}catch(e){ast("Server unreachable")}};
+try{const sp=sessionStorage.getItem("erlcpw:"+TENANT);if(sp)fetch(API_BASE+"/auth",{method:"POST",headers:{"x-admin-password":sp}}).then(r=>{if(r.ok){adminPw=sp;unl()}}).catch(()=>{})}catch(e){}
 fetch(API_BASE+"/auth",{method:"POST"}).then(r=>{if(r.ok){adminPw="desktop";unl()}}).catch(()=>{});
 loadRemote();setInterval(loadRemote,30000);
 if($("skeysave"))$("skeysave").onclick=async()=>{const k=$("skey").value.trim();try{const r=await fetch(API_BASE+"/key",{method:"POST",headers:{"x-admin-password":adminPw,"Content-Type":"application/json"},body:JSON.stringify({key:k})});ast(r.ok?(k?"Server key saved on the server":"Server key removed"):"Couldn\u2019t save the key");$("skey").value=""}catch(e){ast("Server unreachable")}};
@@ -478,6 +485,7 @@ const isAdminView=()=>location.hash==="#admin"||/\/admin\/?$/.test(location.path
 function applyView(){document.body.classList.toggle("admin",isAdminView());if(isAdminView())setView("2d",true);else setView(sget("erlcView")||"2d",true);drawEd();setTimeout(()=>{if(!isAdminView())nav(false)},0)}
 addEventListener("hashchange",applyView);
 if(/\/admin\/?$/.test(location.pathname))$("aback").setAttribute("href",SLUG?"/s/"+SLUG:"/app");
+if(/[?&]welcome=1/.test(location.search)&&$("welcome")){$("welcome").hidden=false;$("wlink").textContent=location.origin+(SLUG?"/s/"+SLUG:"/app")}
 if($("adisc"))$("adisc").href="/auth/discord?next="+encodeURIComponent(location.pathname);fetch(API_BASE+"/info").then(r=>r.ok?r.json():null).then(i=>{if(i){$("srvname").textContent=i.name;document.title="ERLC Navigator \u00b7 "+i.name}}).catch(()=>{});
 try{const s=sget(DKEY);setData(s?JSON.parse(s):clone(DEF))}catch(e){setData(clone(DEF))}
 function bldClick(i,ev){if(moved)return;const b=BLD[i];if(!b)return;

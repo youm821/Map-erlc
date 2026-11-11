@@ -97,8 +97,9 @@ function prev(){$("prev").textContent=location.origin+"/s/"+($("slug").value||"y
 $("make").onclick=async()=>{const m=$("cmsg");say(m,true,"Creating…");
  const r=await api("POST","/api/servers",{name:$("name").value,slug:$("slug").value,erlcKey:$("key").value,adminPassword:$("pw").value,inviteCode:$("inv").value,listed:$("listed").checked});
  if(!r.ok){say(m,false,r.data.message||"Couldn’t create the server");return}
- m.className="msg ok";m.textContent="";m.append("Created! Your link: ",mk("a",{href:r.data.app,textContent:location.origin+r.data.app}));
- $("name").value=$("slug").value=$("key").value=$("pw").value="";touched=false;prev();if(ME)loadMine();
+ m.className="msg ok";m.textContent="Created! Taking you to your admin panel…";
+ if(!ME&&$("pw").value){try{sessionStorage.setItem("erlcpw:"+r.data.slug,$("pw").value)}catch(e){}}   // lets the admin panel unlock without asking again
+ setTimeout(()=>{location.href=r.data.admin+"?welcome=1"},500);
 };
 init();
 </script></body></html>
